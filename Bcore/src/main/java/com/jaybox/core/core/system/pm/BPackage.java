@@ -137,7 +137,15 @@ public class BPackage implements Parcelable {
         this.mVersionCode = aPackage.mVersionCode;
         this.applicationInfo = aPackage.applicationInfo;
         this.mVersionName = aPackage.mVersionName;
-        this.baseCodePath = this.applicationInfo.sourceDir;
+        // Use applicationInfo.sourceDir (public API) instead of hidden baseCodePath
+        // Fall back to baseCodePath if applicationInfo is null (shouldn't happen normally)
+        if (this.applicationInfo != null && this.applicationInfo.sourceDir != null) {
+            this.baseCodePath = this.applicationInfo.sourceDir;
+        } else if (aPackage.baseCodePath != null) {
+            this.baseCodePath = aPackage.baseCodePath;
+        } else {
+            this.baseCodePath = "";
+        }
         this.mSharedUserLabel = aPackage.mSharedUserLabel;
         this.configPreferences = aPackage.configPreferences;
         this.reqFeatures = aPackage.reqFeatures;
