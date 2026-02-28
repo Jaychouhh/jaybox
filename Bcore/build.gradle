@@ -42,10 +42,9 @@ android {
         checkReleaseBuilds false
         abortOnError false
         warningsAsErrors false
-        disable "UnusedResources", 'RestrictedApi'
+        disable += ["UnusedResources", "RestrictedApi"]
         textOutput file("stdout")
         textReport false
-        check 'NewApi', 'InlinedApi'
     }
 }
 
