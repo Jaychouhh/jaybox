@@ -362,14 +362,14 @@ else()
   message(STATUS "[Dobby] Generate static library")
   set(DOBBY_LIBRARY_TYPE STATIC)
 endif()
-add_library(blackdex_d ${DOBBY_LIBRARY_TYPE} ${dobby.HEADER_FILE_LIST} ${dobby.SOURCE_FILE_LIST} ${logging.SOURCE_FILE_LIST} ${xnucxx.SOURCE_FILE_LIST} ${dobby.plugin.SOURCE_FILE_LIST})
+add_library(jaybox_d ${DOBBY_LIBRARY_TYPE} ${dobby.HEADER_FILE_LIST} ${dobby.SOURCE_FILE_LIST} ${logging.SOURCE_FILE_LIST} ${xnucxx.SOURCE_FILE_LIST} ${dobby.plugin.SOURCE_FILE_LIST})
 
-target_include_directories(blackdex_d PUBLIC include)
+target_include_directories(jaybox_d PUBLIC include)
 
 if(EnableObfuscation)
 set(linker_flags "${linker_flags} -Wl,-mllvm -Wl,-obfuscator-conf=all")
 endif()
-set_target_properties(blackdex_d
+set_target_properties(jaybox_d
   PROPERTIES LINK_FLAGS "${linker_flags}"
   )
 if(SYSTEM.Darwin)
@@ -406,11 +406,11 @@ if(SYSTEM.Darwin)
 endif()
 
 if(SYSTEM.Android)
-  target_link_libraries(blackdex_d log)
+  target_link_libraries(jaybox_d log)
 endif()
 
 if(SYSTEM.Linux)
-  target_link_libraries(blackdex_d dl)
+  target_link_libraries(jaybox_d dl)
 endif()
 
 if(SYSTEM.Darwin)

@@ -16,6 +16,6 @@ if(SYSTEM.Android)
     )
 
   target_link_libraries(android_example
-          blackdex_d
+          jaybox_d
     )
 endif()
