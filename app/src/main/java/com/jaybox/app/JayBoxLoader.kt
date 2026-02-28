@@ -1,7 +1,7 @@
 package com.jaybox.app
 
 import android.content.Context
-import com.jaybox.core.JayboxCore
+import com.jaybox.core.JayBoxCore
 import com.jaybox.core.app.configuration.ClientConfiguration
 import com.jaybox.core.utils.FileUtils
 import com.jaybox.core.utils.compat.BuildCompat
@@ -36,7 +36,7 @@ class JayboxLoader {
     }
 
     fun attachBaseContext(context: Context) {
-        JayboxCore.get().doAttachBaseContext(context, object : ClientConfiguration() {
+        JayBoxCore.get().doAttachBaseContext(context, object : ClientConfiguration() {
             override fun getHostPackageName(): String {
                 return context.packageName
             }
@@ -56,7 +56,7 @@ class JayboxLoader {
     }
 
     fun doOnCreate(context: Context) {
-        JayboxCore.get().doCreate()
+        JayBoxCore.get().doCreate()
     }
 
     fun saveEnable(): Boolean {

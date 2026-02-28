@@ -14,7 +14,7 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.files.fileChooser
 import com.ferfalk.simplesearchview.SimpleSearchView
 import com.umeng.analytics.MobclickAgent
-import com.jaybox.core.JayboxCore
+import com.jaybox.core.JayBoxCore
 import com.jaybox.core.core.system.dump.IBDumpMonitor
 import com.jaybox.core.entity.dump.DumpResult
 import com.jaybox.R
@@ -53,7 +53,7 @@ class MainActivity : PermissionActivity() {
         initViewModel()
         initSearchView()
 
-        JayboxCore.get().registerDumpMonitor(mMonitor)
+        JayBoxCore.get().registerDumpMonitor(mMonitor)
 
     }
 

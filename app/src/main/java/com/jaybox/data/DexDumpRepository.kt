@@ -9,7 +9,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.jaybox.core.BlackBoxCore
 import com.jaybox.core.BlackBoxCore.getPackageManager
-import com.jaybox.core.JayboxCore
+import com.jaybox.core.JayBoxCore
 import com.jaybox.core.entity.pm.InstallResult
 import com.jaybox.core.utils.AbiUtils
 import com.jaybox.R
@@ -57,11 +57,11 @@ class DexDumpRepository {
     fun dumpDex(source: String, dexDumpLiveData: MutableLiveData<DumpInfo>) {
         dexDumpLiveData.postValue(DumpInfo(DumpInfo.LOADING))
         val result = if (URLUtil.isValidUrl(source)) {
-            JayboxCore.get().dumpDex(Uri.parse(source))
+            JayBoxCore.get().dumpDex(Uri.parse(source))
         } else if (source.contains("/")) {
-            JayboxCore.get().dumpDex(File(source))
+            JayBoxCore.get().dumpDex(File(source))
         } else {
-            JayboxCore.get().dumpDex(source)
+            JayBoxCore.get().dumpDex(source)
         }
 
         if (result != null) {
@@ -80,7 +80,7 @@ class DexDumpRepository {
     private fun startCountdown(installResult: InstallResult, dexDumpLiveData: MutableLiveData<DumpInfo>) {
         GlobalScope.launch {
             val tempId = dumpTaskId
-            while (JayboxCore.get().isRunning) {
+            while (JayBoxCore.get().isRunning) {
                 delay(20000)
                 //10s
                 if (!AppManager.mBlackBoxLoader.isFixCodeItem()) {
@@ -89,7 +89,7 @@ class DexDumpRepository {
                 //fixCodeItem 需要长时间运行，普通内存dump不需要
             }
             if (tempId == dumpTaskId) {
-                if (JayboxCore.get().isExistDexFile(installResult.packageName)) {
+                if (JayBoxCore.get().isExistDexFile(installResult.packageName)) {
                     dexDumpLiveData.postValue( DumpInfo(
                             DumpInfo.SUCCESS,
                             App.getContext().getString(R.string.dex_save, File(BlackBoxCore.get().dexDumpDir, installResult.packageName).absolutePath)
