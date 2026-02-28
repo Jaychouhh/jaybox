@@ -29,7 +29,7 @@ aux_source_directory(hook SRC5)
 aux_source_directory(jnihook SRC6)
 add_compile_options(-w)
 add_library( # Sets the name of the library.
-             blackdex
+             jaybox
 
              # Sets the library as a shared library.
              SHARED
@@ -64,8 +64,8 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                        blackdex
-                        blackdex_d
+                        jaybox
+                        jaybox_d
                        # Links the target library to the log library
                        # included in the NDK.
                        ${log-lib}
