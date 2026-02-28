@@ -274,18 +274,42 @@ void DexDump::hookDumpDex(JNIEnv *env, jstring dir) {
     dumpPath = env->GetStringUTFChars(dir, 0);
     const char *libart = "libart.so";
 
-    // L
-    void *loadMethod = DobbySymbolResolver(libart,
-                                           "_ZN3art11ClassLinker10LoadMethodEPNS_6ThreadERKNS_7DexFileERKNS_21ClassDataItemIteratorENS_6HandleINS_6mirror5ClassEEE");
+    void *loadMethod = nullptr;
+
+    // Android 15+ (API 35+): ClassLinker::LoadMethod with ClassAccessor::Method
+    // The signature may differ slightly across 15/16 builds
     if (!loadMethod) {
-        // M
+        loadMethod = DobbySymbolResolver(libart,
+                                         "_ZN3art11ClassLinker10LoadMethodERKNS_7DexFileERKNS_13ClassAccessor6MethodENS_6HandleINS_6mirror5ClassEEEPNS_9ArtMethodE");
+    }
+
+    // Android 14 (API 34): same as above but try with const Handle
+    if (!loadMethod) {
+        loadMethod = DobbySymbolResolver(libart,
+                                         "_ZN3art11ClassLinker10LoadMethodERKNS_7DexFileERKNS_13ClassAccessor6MethodENS_6HandleINS_6mirror5ClassEEEPNS_9ArtMethodES4_");
+    }
+
+    // O/P/Q/R/S/T variant: ClassAccessor::Method (most common for Android 8-14)
+    if (!loadMethod) {
+        loadMethod = DobbySymbolResolver(libart,
+                                         "_ZN3art11ClassLinker10LoadMethodERKNS_7DexFileERKNS_21ClassAccessor6MethodENS_6HandleINS_6mirror5ClassEEEPNS_9ArtMethodE");
+    }
+
+    // M/N variant: ClassDataItemIterator with Thread* and ArtMethod* params
+    if (!loadMethod) {
         loadMethod = DobbySymbolResolver(libart,
                                          "_ZN3art11ClassLinker10LoadMethodEPNS_6ThreadERKNS_7DexFileERKNS_21ClassDataItemIteratorENS_6HandleINS_6mirror5ClassEEEPNS_9ArtMethodE");
     }
+
+    // L variant: ClassDataItemIterator without ArtMethod* output param
     if (!loadMethod) {
-        // O
         loadMethod = DobbySymbolResolver(libart,
-                                         "_ZN3art11ClassLinker10LoadMethodERKNS_7DexFileERKNS_13ClassAccessor6MethodENS_6HandleINS_6mirror5ClassEEEPNS_9ArtMethodE");
+                                         "_ZN3art11ClassLinker10LoadMethodEPNS_6ThreadERKNS_7DexFileERKNS_21ClassDataItemIteratorENS_6HandleINS_6mirror5ClassEEE");
+    }
+
+    if (!loadMethod) {
+        ALOGE("hookDumpDex: failed to resolve ClassLinker::LoadMethod symbol in %s", libart);
+        return;
     }
 
     _make_rwx(loadMethod, _page_size);

@@ -6,6 +6,12 @@
 #ifndef ARTHOOK_ART_METHOD_H
 #define ARTHOOK_ART_METHOD_H
 
+#define __ANDROID_API_W__ 36
+#define __ANDROID_API_V__ 35
+#define __ANDROID_API_U__ 34
+#define __ANDROID_API_T__ 33
+#define __ANDROID_API_S_V2__ 32
+#define __ANDROID_API_S__ 31
 #define __ANDROID_API_R__ 30
 #define __ANDROID_API_Q__ 29
 #define __ANDROID_API_P__ 28
@@ -31,6 +37,12 @@ static constexpr uint32_t kAccEnum =         0x4000;  // class, field, ic (1.5)
 
 static constexpr uint32_t kAccPublicApi =             0x10000000;  // field, method
 static constexpr uint32_t kAccCorePlatformApi =       0x20000000;  // field, method
+
+// Flags introduced in Android 14+ (API 34+)
+// Method was precompiled (dex2oat), used in ART to track compilation status.
+static constexpr uint32_t kAccPreCompiled =           0x00200000;  // method (runtime)
+// Method is not compilable and must be run with the interpreter.
+static constexpr uint32_t kAccCompileDontBother =     0x02000000;  // method (runtime)
 
 // Native method flags are set when linking the methods based on the presence of the
 // @dalvik.annotation.optimization.{Fast,Critical}Native annotations with build visibility.

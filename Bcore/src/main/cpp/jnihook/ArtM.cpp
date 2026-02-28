@@ -69,7 +69,22 @@ bool ArtM::ClearFastNativeFlag(char *art_method) {
 void *ArtM::GetArtMethod(JNIEnv *env, jclass clazz, jmethodID methodId) {
     if (ArtMethodEnv.api_level >= __ANDROID_API_Q__) {
         jclass executable = env->FindClass("java/lang/reflect/Executable");
+        if (executable == nullptr) {
+            env->ExceptionClear();
+            // Fallback: on some Android 15+/16 builds, try AbstractMethod
+            executable = env->FindClass("java/lang/reflect/AbstractMethod");
+            if (executable == nullptr) {
+                env->ExceptionClear();
+                // Last resort fallback: treat methodId as art method pointer
+                return methodId;
+            }
+        }
         jfieldID artId = env->GetFieldID(executable, "artMethod", "J");
+        if (artId == nullptr) {
+            env->ExceptionClear();
+            // Field may have been renamed or removed in Android 16+
+            return methodId;
+        }
         jobject method = env->ToReflectedMethod(clazz, methodId, true);
         return reinterpret_cast<void *>(env->GetLongField(method, artId));
     } else {
@@ -80,7 +95,19 @@ void *ArtM::GetArtMethod(JNIEnv *env, jclass clazz, jmethodID methodId) {
 void *ArtM::GetArtMethod(JNIEnv *env, jobject method) {
     if (ArtMethodEnv.api_level >= __ANDROID_API_Q__) {
         jclass executable = env->FindClass("java/lang/reflect/Executable");
+        if (executable == nullptr) {
+            env->ExceptionClear();
+            executable = env->FindClass("java/lang/reflect/AbstractMethod");
+            if (executable == nullptr) {
+                env->ExceptionClear();
+                return env->FromReflectedMethod(method);
+            }
+        }
         jfieldID artId = env->GetFieldID(executable, "artMethod", "J");
+        if (artId == nullptr) {
+            env->ExceptionClear();
+            return env->FromReflectedMethod(method);
+        }
         return reinterpret_cast<void *>(env->GetLongField(method, artId));
     } else {
         return env->FromReflectedMethod(method);
@@ -91,6 +118,16 @@ void *GetFieldMethod(JNIEnv *env, jobject field) {
     if (ArtMethodEnv.api_level >= __ANDROID_API_Q__) {
         jclass fieldClass = env->FindClass("java/lang/reflect/Field");
         jmethodID getArtField = env->GetMethodID(fieldClass, "getArtField", "()J");
+        if (getArtField == nullptr) {
+            env->ExceptionClear();
+            // Fallback for Android 15+/16: try alternate accessor
+            getArtField = env->GetMethodID(fieldClass, "getArtFieldIndex", "()I");
+            if (getArtField != nullptr) {
+                // Different return type - can't use directly, fall through to FromReflectedField
+                env->ExceptionClear();
+            }
+            return env->FromReflectedField(field);
+        }
         return reinterpret_cast<void *>(env->CallLongMethod(field, getArtField));
     } else {
         return env->FromReflectedField(field);
@@ -128,13 +165,32 @@ void ArtM::InitArtMethod(JNIEnv *env, int api_level) {
     void *nativeOffset2 = GetArtMethod(env, clazz, nativeOffset2Id);
     ArtMethodEnv.art_method_size = (size_t) nativeOffset2 - (size_t) nativeOffset;
 
+    // Sanity check: ArtMethod size should be reasonable (typically 32-64 bytes)
+    if (ArtMethodEnv.art_method_size == 0 || ArtMethodEnv.art_method_size > 256) {
+        ALOGE("ArtMethod size looks unreasonable: %d, using fallback", ArtMethodEnv.art_method_size);
+        // Fallback sizes based on known ART versions
+        if (api_level >= __ANDROID_API_V__) {
+            ArtMethodEnv.art_method_size = sizeof(void *) == 8 ? 40 : 28;
+        } else if (api_level >= __ANDROID_API_R__) {
+            ArtMethodEnv.art_method_size = sizeof(void *) == 8 ? 36 : 24;
+        } else {
+            ArtMethodEnv.art_method_size = sizeof(void *) == 8 ? 32 : 24;
+        }
+    }
+
     // calc native offset
     auto artMethod = reinterpret_cast<uintptr_t *>(nativeOffset);
-    for (int i = 0; i < ArtMethodEnv.art_method_size; ++i) {
+    ArtMethodEnv.art_method_native_offset = 0;
+    for (int i = 0; i < ArtMethodEnv.art_method_size / sizeof(uintptr_t); ++i) {
         if (reinterpret_cast<void *>(artMethod[i]) == native_offset) {
-            ArtMethodEnv.art_method_native_offset = i;
+            ArtMethodEnv.art_method_native_offset = i * sizeof(uintptr_t);
             break;
         }
+    }
+    if (ArtMethodEnv.art_method_native_offset == 0) {
+        ALOGE("Failed to find native offset in ArtMethod, using heuristic");
+        // Heuristic: entry_point_from_jni_ is typically the last pointer-sized field
+        ArtMethodEnv.art_method_native_offset = ArtMethodEnv.art_method_size - sizeof(void *);
     }
 
     uint32_t flags = 0x0;
@@ -147,12 +203,46 @@ void ArtM::InitArtMethod(JNIEnv *env, int api_level) {
     }
 
     char *start = reinterpret_cast<char *>(artMethod);
+    bool found = false;
     for (int i = 1; i < ArtMethodEnv.art_method_size; ++i) {
         auto value = *(uint32_t * )(start + i * sizeof(uint32_t));
         if (value == flags) {
             ArtMethodEnv.art_method_flags_offset = i * sizeof(uint32_t);
             ArtMethodEnv.art_method_dex_code_item_offset = (i + 1) * sizeof(uint32_t);
+            found = true;
             break;
         }
     }
+
+    // On Android 15+/16 (API 35+), the access flags may include additional runtime flags.
+    // Try scanning with relaxed flag matching if exact match fails.
+    if (!found && api_level >= __ANDROID_API_V__) {
+        uint32_t mask = kAccPublic | kAccStatic | kAccNative | kAccFinal | kAccPublicApi;
+        for (int i = 1; i < ArtMethodEnv.art_method_size; ++i) {
+            auto value = *(uint32_t *)(start + i * sizeof(uint32_t));
+            // Check if all expected flags are set (allow additional runtime flags)
+            if ((value & mask) == flags) {
+                ArtMethodEnv.art_method_flags_offset = i * sizeof(uint32_t);
+                ArtMethodEnv.art_method_dex_code_item_offset = (i + 1) * sizeof(uint32_t);
+                found = true;
+                ALOGE("ArtMethod flags found with relaxed matching at offset %d (value=0x%x)",
+                      i * (int)sizeof(uint32_t), value);
+                break;
+            }
+        }
+    }
+
+    if (!found) {
+        ALOGE("Failed to find ArtMethod flags offset! api_level=%d", api_level);
+        // Heuristic fallback: flags are typically at offset 4
+        ArtMethodEnv.art_method_flags_offset = sizeof(uint32_t);
+        ArtMethodEnv.art_method_dex_code_item_offset = 2 * sizeof(uint32_t);
+    }
+
+    ALOGD("ArtMethod init: size=%d flags_offset=%d dex_code_offset=%d native_offset=%d api=%d",
+          ArtMethodEnv.art_method_size,
+          ArtMethodEnv.art_method_flags_offset,
+          ArtMethodEnv.art_method_dex_code_item_offset,
+          ArtMethodEnv.art_method_native_offset,
+          api_level);
 }
