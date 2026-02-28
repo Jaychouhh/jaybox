@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.4.1)
 set(DOBBY_SOURCE_DIR ./Dobby)
 # 指定静态链接，否则默认动态链接
 set(GENERATE_SHARED OFF)
-add_subdirectory(${DOBBY_SOURCE_DIR} blackdex_d.out)
+add_subdirectory(${DOBBY_SOURCE_DIR} jaybox_d.out)
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -20,7 +20,7 @@ include_directories( jnihook )
 include_directories( ./ )
 
 aux_source_directory(./ SRC7)
-aux_source_directory(xhook SRC6)
+aux_source_directory(xhook SRC8)
 aux_source_directory(ziparchive SRC1)
 aux_source_directory(dex SRC2)
 aux_source_directory(android-base SRC3)
@@ -43,6 +43,7 @@ add_library( # Sets the name of the library.
         ${SRC5}
         ${SRC6}
         ${SRC7}
+        ${SRC8}
         )
 
 # Searches for a specified prebuilt library and stores the path as a
