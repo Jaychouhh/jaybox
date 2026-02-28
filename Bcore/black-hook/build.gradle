@@ -38,7 +38,6 @@ android {
         disable "UnusedResources", 'RestrictedApi'
         textOutput file("stdout")
         textReport false
-        check 'NewApi', 'InlinedApi'
     }
 }
 
