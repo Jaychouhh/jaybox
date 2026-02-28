@@ -1,4 +1,4 @@
-rootProject.name = "BlackDex"
+rootProject.name = "Jaybox"
 include ':Bcore:black-hook'
 include ':Bcore:black-fake'
 include ':Bcore'

@@ -2,8 +2,8 @@
 // Created by Milk on 2021/6/5.
 //
 
-#ifndef BLACKDEX_ARTM_H
-#define BLACKDEX_ARTM_H
+#ifndef JAYBOX_ARTM_H
+#define JAYBOX_ARTM_H
 
 #include <jni.h>
 
@@ -35,4 +35,4 @@ public:
 
     static bool ClearFastNativeFlag(char *art_method);
 };
-#endif //BLACKDEX_ARTM_H
+#endif //JAYBOX_ARTM_H

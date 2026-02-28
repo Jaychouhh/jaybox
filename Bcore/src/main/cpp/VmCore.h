@@ -7,7 +7,7 @@
 
 #include <jni.h>
 
-#define VMCORE_CLASS "top/niunaijun/blackbox/core/VMCore"
+#define VMCORE_CLASS "com/jaybox/core/core/VMCore"
 
 class VmCore {
 public:
