@@ -183,6 +183,10 @@ import com.jaybox.core.utils.Slog;
             }
             bPackageSettings.pkg.mExtras = bPackageSettings;
             bPackageSettings.pkg.applicationInfo = PackageManagerCompat.generateApplicationInfo(bPackageSettings.pkg, 0, BPackageUserState.create(), 0);
+            // Fix for Android 16: sync baseCodePath with applicationInfo.sourceDir
+            if (bPackageSettings.pkg.applicationInfo != null && bPackageSettings.pkg.applicationInfo.sourceDir != null) {
+                bPackageSettings.pkg.baseCodePath = bPackageSettings.pkg.applicationInfo.sourceDir;
+            }
             bPackageSettings.save();
             mPackages.put(bPackageSettings.pkg.packageName, bPackageSettings);
             Slog.d(TAG, "loaded Package: " + packageName);
