@@ -80,9 +80,14 @@ public class BlackBoxCore extends ClientConfiguration {
         if (clientConfiguration == null) {
             throw new IllegalArgumentException("ClientConfiguration is null!");
         }
-        Reflection.unseal(context);
-        // Additional hidden API bypass for Android 14+/15+/16+ where free_reflection may fail
+        // Try our own hidden API bypass first (works better on Android 16)
         HiddenApiCompat.tryBypassHiddenApi();
+        // Then try free_reflection as fallback (may fail on Android 16)
+        try {
+            Reflection.unseal(context);
+        } catch (Throwable e) {
+            // free_reflection may fail on Android 16, that's OK
+        }
         sContext = context;
         mClientConfiguration = clientConfiguration;
         mClientConfiguration.init();
