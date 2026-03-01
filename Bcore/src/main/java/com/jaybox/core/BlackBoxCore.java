@@ -35,7 +35,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import me.weishu.reflection.Reflection;
 import reflection.android.app.ActivityThread;
 import com.jaybox.core.fake.frameworks.BStorageManager;
 import com.jaybox.core.core.system.ServiceManager;
@@ -80,14 +79,9 @@ public class BlackBoxCore extends ClientConfiguration {
         if (clientConfiguration == null) {
             throw new IllegalArgumentException("ClientConfiguration is null!");
         }
-        // Try our own hidden API bypass first (works better on Android 16)
+        // Use our own hidden API bypass for Android 14+/15+/16+
+        // free_reflection library is disabled as it crashes on Android 16
         HiddenApiCompat.tryBypassHiddenApi();
-        // Then try free_reflection as fallback (may fail on Android 16)
-        try {
-            Reflection.unseal(context);
-        } catch (Throwable e) {
-            // free_reflection may fail on Android 16, that's OK
-        }
         sContext = context;
         mClientConfiguration = clientConfiguration;
         mClientConfiguration.init();
