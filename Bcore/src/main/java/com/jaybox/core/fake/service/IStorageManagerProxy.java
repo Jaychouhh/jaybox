@@ -64,9 +64,9 @@ public class IStorageManagerProxy extends BinderInvocationStub {
                 return volumeList;
             }
             try {
-                int uid = SafeCast.toInt(args[0];
+                int uid = SafeCast.toInt(args[0]);
                 String packageName = (String) args[1];
-                int flags = SafeCast.toInt(args[2];
+                int flags = SafeCast.toInt(args[2]);
                 StorageVolume[] volumeList = BlackBoxCore.getBStorageManager().getVolumeList(uid, packageName, flags, BActivityThread.getUserId());
                 if (volumeList == null) {
                     return method.invoke(who, args);
