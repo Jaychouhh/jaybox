@@ -31,7 +31,7 @@ public class MethodParameterUtils {
 	public static void replaceLastUserId(Object[] args){
 		int index = ArrayUtils.indexOfLast(args, Integer.class);
 		if (index != -1) {
-			int uid = SafeCast.toInt(args[index];
+			int uid = SafeCast.toInt(args[index]);
 			if (uid == BActivityThread.getUid()) {
 				args[index] = Process.myUid();
 			}
