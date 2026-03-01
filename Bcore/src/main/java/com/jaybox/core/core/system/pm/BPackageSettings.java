@@ -15,6 +15,7 @@ import com.jaybox.core.entity.pm.InstallOption;
 import com.jaybox.core.core.system.user.BUserHandle;
 import com.jaybox.core.utils.CloseUtils;
 import com.jaybox.core.utils.FileUtils;
+import com.jaybox.core.utils.SafeCast;
 
 /**
  * Created by Milk on 4/21/21.
@@ -139,7 +140,7 @@ public class BPackageSettings implements Parcelable {
         int userStateSize = in.readInt();
         this.userState = new HashMap<Integer, BPackageUserState>(userStateSize);
         for (int i = 0; i < userStateSize; i++) {
-            Integer key = (Integer) in.readValue(Integer.class.getClassLoader());
+            Integer key = SafeCast.toInt(in.readValue(Integer.class.getClassLoader()));
             BPackageUserState value = in.readParcelable(BPackageUserState.class.getClassLoader());
             this.userState.put(key, value);
         }
