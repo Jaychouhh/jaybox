@@ -58,7 +58,7 @@ public class BPackage implements Parcelable {
     // Applications requested features
     public ArrayList<FeatureInfo> reqFeatures = null;
 
-    public BPackage(PackageParser.Package aPackage) {
+    public BPackage(PackageParser.Package aPackage, String apkPath) {
         this.activities = new ArrayList<>(aPackage.activities.size());
         for (PackageParser.Activity activity : aPackage.activities) {
             Activity selfActivity = new Activity(activity);
@@ -137,33 +137,8 @@ public class BPackage implements Parcelable {
         this.mVersionCode = aPackage.mVersionCode;
         this.applicationInfo = aPackage.applicationInfo;
         this.mVersionName = aPackage.mVersionName;
-        // Get baseCodePath - try multiple approaches for Android 16 compatibility
-        String codePath = null;
-        // Method 1: Try applicationInfo.sourceDir (public API)
-        if (this.applicationInfo != null && this.applicationInfo.sourceDir != null) {
-            codePath = this.applicationInfo.sourceDir;
-        }
-        // Method 2: Try reflection on baseCodePath field
-        if (codePath == null || codePath.isEmpty()) {
-            try {
-                java.lang.reflect.Field field = PackageParser.Package.class.getDeclaredField("baseCodePath");
-                field.setAccessible(true);
-                codePath = (String) field.get(aPackage);
-            } catch (Exception e) {
-                // Ignore
-            }
-        }
-        // Method 3: Try codePath field
-        if (codePath == null || codePath.isEmpty()) {
-            try {
-                java.lang.reflect.Field field = PackageParser.Package.class.getDeclaredField("codePath");
-                field.setAccessible(true);
-                codePath = (String) field.get(aPackage);
-            } catch (Exception e) {
-                // Ignore
-            }
-        }
-        this.baseCodePath = (codePath != null) ? codePath : "";
+        // Use the APK path passed directly - avoids reflection blocked on Android 16
+        this.baseCodePath = (apkPath != null) ? apkPath : "";
         this.mSharedUserLabel = aPackage.mSharedUserLabel;
         this.configPreferences = aPackage.configPreferences;
         this.reqFeatures = aPackage.reqFeatures;

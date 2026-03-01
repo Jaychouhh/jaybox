@@ -608,7 +608,7 @@ public class BPackageManagerService extends IBPackageManagerService.Stub impleme
             }
             result.packageName = aPackage.packageName;
 
-            BPackageSettings bPackageSettings = mSettings.getPackageLPw(aPackage.packageName, aPackage);
+            BPackageSettings bPackageSettings = mSettings.getPackageLPw(aPackage.packageName, aPackage, apkFile.getAbsolutePath());
             bPackageSettings.installOption = option;
 
             // stop pkg

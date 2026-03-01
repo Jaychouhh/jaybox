@@ -44,16 +44,12 @@ import com.jaybox.core.utils.Slog;
         }
     }
 
-    BPackageSettings getPackageLPw(String name, PackageParser.Package aPackage) {
+    BPackageSettings getPackageLPw(String name, PackageParser.Package aPackage, String apkPath) {
         BPackageSettings pkgSettings;
         BPackageSettings origSettings = new BPackageSettings();
-        origSettings.pkg = new BPackage(aPackage);
+        origSettings.pkg = new BPackage(aPackage, apkPath);
         origSettings.pkg.mExtras = origSettings;
         origSettings.pkg.applicationInfo = PackageManagerCompat.generateApplicationInfo(origSettings.pkg, 0, BPackageUserState.create(), 0);
-        // Fix for Android 16: set baseCodePath from applicationInfo.sourceDir after it's generated
-        if (origSettings.pkg.applicationInfo != null && origSettings.pkg.applicationInfo.sourceDir != null) {
-            origSettings.pkg.baseCodePath = origSettings.pkg.applicationInfo.sourceDir;
-        }
         synchronized (mPackages) {
             pkgSettings = mPackages.get(name);
             if (pkgSettings != null) {
