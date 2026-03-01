@@ -27,10 +27,10 @@ public class HiddenApiCompat {
             return;
         }
 
-        // On Android 16+, setHiddenApiExemptions is completely blocked
+        // On Android 15+/16+, setHiddenApiExemptions is completely blocked
         // and writing DEX files is not allowed. Skip the bypass attempts.
-        if (BuildCompat.isAtLeastR()) {
-            Log.w(TAG, "Android 16+ detected - hidden API bypass disabled, using reflection fallbacks only");
+        if (BuildCompat.isV()) {
+            Log.w(TAG, "Android 15+ detected - hidden API bypass disabled, using reflection fallbacks only");
             sExemptionApplied = false;
             return;
         }
