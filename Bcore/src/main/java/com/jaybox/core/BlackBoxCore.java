@@ -27,6 +27,7 @@ import com.jaybox.core.utils.ShellUtils;
 import com.jaybox.core.utils.compat.BuildCompat;
 import com.jaybox.core.utils.compat.BundleCompat;
 import com.jaybox.core.utils.compat.HiddenApiCompat;
+import me.weishu.reflection.Reflection;
 import com.jaybox.core.utils.provider.ProviderCall;
 import com.jaybox.core.fake.frameworks.BActivityManager;
 import com.jaybox.core.fake.frameworks.BPackageManager;
@@ -79,9 +80,14 @@ public class BlackBoxCore extends ClientConfiguration {
         if (clientConfiguration == null) {
             throw new IllegalArgumentException("ClientConfiguration is null!");
         }
-        // Use our own hidden API bypass for Android 14+/15+/16+
-        // free_reflection library is disabled as it crashes on Android 16
-        HiddenApiCompat.tryBypassHiddenApi();
+        // Use free_reflection for Android 9-14, our own bypass for Android 15+
+        if (BuildCompat.isV()) {
+            // Android 15+: free_reflection crashes, use our own bypass
+            HiddenApiCompat.tryBypassHiddenApi();
+        } else {
+            // Android 9-14: use free_reflection (more reliable)
+            Reflection.unseal(context);
+        }
         sContext = context;
         mClientConfiguration = clientConfiguration;
         mClientConfiguration.init();

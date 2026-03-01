@@ -62,8 +62,8 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation 'androidx.appcompat:appcompat:1.2.0'
 
-    // free_reflection removed - crashes on Android 16 with "Writable dex file not allowed"
-    // implementation 'me.weishu:free_reflection:3.0.1'
+    // free_reflection for hidden API bypass (Android 9-14)
+    implementation 'me.weishu:free_reflection:3.0.1'
     implementation project(':Bcore:black-hook')
     implementation project(':Bcore:black-fake')
 }
