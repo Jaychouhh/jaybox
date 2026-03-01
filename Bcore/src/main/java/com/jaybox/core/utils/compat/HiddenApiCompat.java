@@ -27,6 +27,14 @@ public class HiddenApiCompat {
             return;
         }
 
+        // On Android 16+, setHiddenApiExemptions is completely blocked
+        // and writing DEX files is not allowed. Skip the bypass attempts.
+        if (BuildCompat.isAtLeastR()) {
+            Log.w(TAG, "Android 16+ detected - hidden API bypass disabled, using reflection fallbacks only");
+            sExemptionApplied = false;
+            return;
+        }
+
         // Strategy 1: VMRuntime.setHiddenApiExemptions (Android 10+)
         if (trySetHiddenApiExemptions()) {
             sExemptionApplied = true;
