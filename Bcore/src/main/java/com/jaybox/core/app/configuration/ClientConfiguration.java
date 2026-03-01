@@ -23,14 +23,9 @@ public abstract class ClientConfiguration {
     public abstract String getHostPackageName();
 
     public String getDexDumpDir() {
-        // Try multiple locations for Android 16 compatibility
-        // 1. Try /data/local/tmp (accessible with root)
-        File rootDump = new File("/data/local/tmp/jaybox/dump");
-        if (rootDump.exists() || rootDump.mkdirs()) {
-            return rootDump.getAbsolutePath();
-        }
-        // 2. Fallback to external storage
-        File dump = new File(mExternalDir, "dump");
+        // Use app's internal files directory for Android 16 compatibility
+        // /data/user/0/com.jaybox.app/files/dump/
+        File dump = new File(BlackBoxCore.getContext().getFilesDir(), "dump");
         FileUtils.mkdirs(dump);
         return dump.getAbsolutePath();
     }
