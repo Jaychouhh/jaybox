@@ -137,13 +137,33 @@ public class BPackage implements Parcelable {
         this.mVersionCode = aPackage.mVersionCode;
         this.applicationInfo = aPackage.applicationInfo;
         this.mVersionName = aPackage.mVersionName;
-        // Use applicationInfo.sourceDir (public API) instead of hidden baseCodePath
+        // Get baseCodePath - try multiple approaches for Android 16 compatibility
+        String codePath = null;
+        // Method 1: Try applicationInfo.sourceDir (public API)
         if (this.applicationInfo != null && this.applicationInfo.sourceDir != null) {
-            this.baseCodePath = this.applicationInfo.sourceDir;
-        } else {
-            // applicationInfo is null, we can't get the path - this should not happen normally
-            this.baseCodePath = "";
+            codePath = this.applicationInfo.sourceDir;
         }
+        // Method 2: Try reflection on baseCodePath field
+        if (codePath == null || codePath.isEmpty()) {
+            try {
+                java.lang.reflect.Field field = PackageParser.Package.class.getDeclaredField("baseCodePath");
+                field.setAccessible(true);
+                codePath = (String) field.get(aPackage);
+            } catch (Exception e) {
+                // Ignore
+            }
+        }
+        // Method 3: Try codePath field
+        if (codePath == null || codePath.isEmpty()) {
+            try {
+                java.lang.reflect.Field field = PackageParser.Package.class.getDeclaredField("codePath");
+                field.setAccessible(true);
+                codePath = (String) field.get(aPackage);
+            } catch (Exception e) {
+                // Ignore
+            }
+        }
+        this.baseCodePath = (codePath != null) ? codePath : "";
         this.mSharedUserLabel = aPackage.mSharedUserLabel;
         this.configPreferences = aPackage.configPreferences;
         this.reqFeatures = aPackage.reqFeatures;
